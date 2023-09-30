@@ -12,7 +12,7 @@ start(_Type, _Args) ->
     ]),
     {ok, _} = cowboy:start_clear(
         server_listener,
-        [{port, env:get("WS_PORT")}],
+        [{port, list_to_integer(env:get("WS_PORT"))}],
         #{env => #{dispatch => Dispatch}}),
 	erlchat_sup:start_link().
 
