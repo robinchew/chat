@@ -6,6 +6,17 @@ from eluthia.defaults import control
 from eluthia.functional import pipe
 from eluthia.py_configs import deb822, nginx
 
+DOMAIN = 'chat.robin.au'
+DOMAIN2 = 'chat2.robin.au'
+
+INTERNAL_PORT = 9000
+PUBLIC_PORT = 80
+
+DEFAULT_ENV = {
+    'WS_PROTOCOL': 'ws',
+    'WS_HOST': DOMAIN2,
+    'WS_PORT': PUBLIC_PORT,
+}
 
 @chmod(0o755)
 @file
@@ -21,10 +32,9 @@ def postinst(full_path, package_name, apps):
 
 @file
 def systemd_service(full_path, package_name, apps):
-    default_env = {}
     environment_variables = '\n'.join(
         f"        Environment={variable}={value}"
-        for variable, value in {**default_env, **apps[package_name]['env']}.items()).strip()
+        for variable, value in {**DEFAULT_ENV, **apps[package_name]['env']}.items()).strip()
 
     return f'''\
         [Unit]
@@ -40,23 +50,25 @@ def systemd_service(full_path, package_name, apps):
     '''
 
 def nginx_conf(full_path, package_name, apps):
-    env = apps[package_name]['env']
-    env_json = json.dumps(env)
+    env_json = json.dumps(DEFAULT_ENV)
     env_init_location = ('location', '=', '/importEnv.js', (
         ('return', 200, f"'importEnv = () => ({env_json})'"),
     ))
     return (
         ('server', (
-            ('listen', 80),
-            ('server_name', 'chat.robin.au'),
+            ('listen', PUBLIC_PORT),
+            ('server_name', DOMAIN, DOMAIN2),
             ('charset', 'utf-8'),
+
+            # root must be set at server level in order for "location = /" to work
+            ('root', '/home/ubuntu/system/chat_front'),
+
             ('location', '=', '/', (
-                ('root', '/home/ubuntu/system/chat_front'),
                 ('try_files', '$uri', '/index.html'),
             )),
             env_init_location,
             ('location', '/', (
-                ('proxy_pass', f"http://localhost:{env['WS_PORT']}"),
+                ('proxy_pass', f"http://localhost:{INTERNAL_PORT}"),
             )),
         )),
     )
