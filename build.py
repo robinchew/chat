@@ -43,7 +43,7 @@ def nginx_conf(full_path, package_name, apps):
     env = apps[package_name]['env']
     env_json = json.dumps(env)
     env_init_location = ('location', '=', '/importEnv.js', (
-        ('return', 200, f'"importEnv = () => ({env_json})"'),
+        ('return', 200, f"'importEnv = () => ({env_json})'"),
     ))
     return (
         ('server', (
