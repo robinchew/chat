@@ -1,9 +1,17 @@
+<head>
+    <script src="importEnv.js"></script>
+</head>
 <body>
     <ul id="messages">
     </ul>
     <input id="type_here" />
     <script>
-        const ws = new WebSocket('ws://localhost:8000/sessir38838');
+        function buildUrl(protocol, host, port, path) {
+            return `${protocol}://${host}:${port}/` + path.join('/');
+        }
+        const env = importEnv();
+        const ws = new WebSocket(buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']));
+        const messages = document.getElementById('messages');
 
         function joinChat(chatName) {
             ws.send(['chat', chatName, 'join'].join('|'));
@@ -11,25 +19,30 @@
         function sendMessage(chatName, message) {
             ws.send(['chat', chatName, 'message', message].join('|'));
         }
+        function renderMessage(message) {
+            const li = document.createElement('li')
+            li.innerHTML = message;
+            messages.appendChild(li);
+        }
 
         const roomName = 'room1_UUID';
 
         ws.onopen = () => {
             joinChat(roomName);
         };
-        const messages = document.getElementById('messages');
+        ws.onclose = () => {
+            renderMessage('<span style="color:red">Connection closed</span>');
+        }
         ws.onmessage = (d) => {
-            console.log("d",d);
-            const li = document.createElement('li')
-            li.innerHTML = d.data;
-            messages.appendChild(li);
+            renderMessage(d.data);
         }
 
         const input = document.getElementById('type_here');
+        input.focus();
         input.addEventListener('keyup', e => {
             if (e.key === 'Enter') {
-                console.log('sendu');
                 sendMessage(roomName, e.currentTarget.value);
+                e.currentTarget.value = '';
             }
         });
     </script>
