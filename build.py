@@ -16,7 +16,7 @@ def postinst(full_path, package_name, apps):
 
         # Enable and start the service
         systemctl enable {package_name}
-        systemctl restart {package_name}
+        systemctl restart {package_name} nginx
     '''
 
 @file
