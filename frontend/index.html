@@ -1,0 +1,36 @@
+<body>
+    <ul id="messages">
+    </ul>
+    <input id="type_here" />
+    <script>
+        const ws = new WebSocket('ws://localhost:8000/sessir38838');
+
+        function joinChat(chatName) {
+            ws.send(['chat', chatName, 'join'].join('|'));
+        }
+        function sendMessage(chatName, message) {
+            ws.send(['chat', chatName, 'message', message].join('|'));
+        }
+
+        const roomName = 'room1_UUID';
+
+        ws.onopen = () => {
+            joinChat(roomName);
+        };
+        const messages = document.getElementById('messages');
+        ws.onmessage = (d) => {
+            console.log("d",d);
+            const li = document.createElement('li')
+            li.innerHTML = d.data;
+            messages.appendChild(li);
+        }
+
+        const input = document.getElementById('type_here');
+        input.addEventListener('keyup', e => {
+            if (e.key === 'Enter') {
+                console.log('sendu');
+                sendMessage(roomName, e.currentTarget.value);
+            }
+        });
+    </script>
+</body>
