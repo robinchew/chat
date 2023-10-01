@@ -9,10 +9,9 @@ from eluthia.py_configs import deb822, nginx
 DOMAIN = 'chat.robin.au'
 DOMAIN2 = 'chat2.robin.au'
 
-INTERNAL_PORT = 9000
 PUBLIC_PORT = 80
 
-DEFAULT_ENV = {
+FRONTEND_ENV = {
     'WS_PROTOCOL': 'ws',
     'WS_HOST': DOMAIN2,
     'WS_PORT': PUBLIC_PORT,
@@ -31,10 +30,13 @@ def postinst(full_path, package_name, apps):
     '''
 
 @file
-def systemd_service(full_path, package_name, apps):
+def systemd_service(full_path, package_name, apps, machine_name, machines):
+    server_env = {
+        'SERVER_PORT': machines[machine_name]['port_by_name']['chat_server'],
+    }
     environment_variables = '\n'.join(
         f"        Environment={variable}={value}"
-        for variable, value in {**DEFAULT_ENV, **apps[package_name]['env']}.items()).strip()
+        for variable, value in {**server_env, **apps[package_name]['env']}.items()).strip()
 
     return f'''\
         [Unit]
@@ -49,8 +51,9 @@ def systemd_service(full_path, package_name, apps):
         WantedBy=multi-user.target
     '''
 
-def nginx_conf(full_path, package_name, apps):
-    env_json = json.dumps(DEFAULT_ENV)
+def nginx_conf(full_path, package_name, apps, machine_name, machines):
+    server_port = machines[machine_name]['port_by_name']['chat_server']
+    env_json = json.dumps(FRONTEND_ENV)
     env_init_location = ('location', '=', '/importEnv.js', (
         ('return', 200, f"'importEnv = () => ({env_json})'"),
     ))
@@ -68,7 +71,7 @@ def nginx_conf(full_path, package_name, apps):
             )),
             env_init_location,
             ('location', '/', (
-                ('proxy_pass', f"http://localhost:{INTERNAL_PORT}"),
+                ('proxy_pass', f"http://127.0.0.1:{server_port}"),
             )),
         )),
     )
