@@ -7,13 +7,12 @@ from eluthia.functional import pipe
 from eluthia.py_configs import deb822, nginx
 
 DOMAIN = 'chat.robin.au'
-DOMAIN2 = 'chat2.robin.au'
 
 PUBLIC_PORT = 80
 
 FRONTEND_ENV = {
     'WS_PROTOCOL': 'ws',
-    'WS_HOST': DOMAIN2,
+    'WS_HOST': DOMAIN,
     'WS_PORT': PUBLIC_PORT,
 }
 
@@ -58,20 +57,32 @@ def nginx_conf(full_path, package_name, apps, machine_name, machines):
         ('return', 200, f"'importEnv = () => ({env_json})'"),
     ))
     return (
+        ('map', '$http_upgrade', '$connection_upgrade', (
+            # Websocket related
+            # https://www.nginx.com/blog/websocket-nginx/
+            ('default', 'upgrade'),
+            ("''", 'close'),
+        )),
         ('server', (
             ('listen', PUBLIC_PORT),
-            ('server_name', DOMAIN, DOMAIN2),
+            ('server_name', DOMAIN),
             ('charset', 'utf-8'),
 
             # root must be set at server level in order for "location = /" to work
             ('root', '/home/ubuntu/system/chat_front'),
 
-            ('location', '=', '/', (
-                ('try_files', '$uri', '/index.html'),
-            )),
             env_init_location,
             ('location', '/', (
+                # Try $uri file or $uri/ directory or @backend
+                ('try_files', '$uri', '$uri/', '@backend'),
+            )),
+            ('location', '@backend', (
+                # Websocket backend
                 ('proxy_pass', f"http://127.0.0.1:{server_port}"),
+                ('proxy_http_version', '1.1'),
+                ('proxy_set_header', 'Upgrade', '$http_upgrade'),
+                ('proxy_set_header', 'Connection', '$connection_upgrade'),
+                ('proxy_set_header', 'Host', '$host'),
             )),
         )),
     )
