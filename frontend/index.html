@@ -7,7 +7,8 @@
     <input id="type_here" />
     <script>
         function buildUrl(protocol, host, port, path) {
-            return `${protocol}://${host}:${port}/` + path.join('/');
+            // return `${protocol}://${host}:${port}/` + path.join('/');
+            return `${protocol}://${host}/` + path.join('/');
         }
         const env = importEnv();
         const ws = new WebSocket(buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']));
@@ -19,6 +20,10 @@
         function sendMessage(chatName, message) {
             ws.send(['chat', chatName, 'message', message].join('|'));
         }
+        function sendPing() {
+            ws.send(['ping']);
+        }
+
         function renderMessage(message) {
             const li = document.createElement('li')
             li.innerHTML = message;
@@ -29,6 +34,15 @@
 
         ws.onopen = () => {
             joinChat(roomName);
+            // interval to ping every 5 seconds if connected
+            setInterval(() => {
+                if (ws.readyState === 1) {
+                    sendPing();
+                } else {
+                    clearInterval(this);
+                }
+            }, 30000);
+            sendPing();
         };
         ws.onclose = () => {
             renderMessage('<span style="color:red">Connection closed</span>');
