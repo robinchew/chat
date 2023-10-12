@@ -1,4 +1,4 @@
--module(channel_manager).
+-module(channel_tracker).
 -behaviour(gen_server).
 
 -export([
