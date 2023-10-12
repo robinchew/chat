@@ -101,6 +101,14 @@ handle_call(login, _From, State) ->
 handle_call(_, _From, State) ->
     {reply, State, State}.
 
+handle_info({new_message, Msg}, State = #{ws_pids := WsPids}) ->
+    lists:foreach(
+        fun(WsPid) ->
+            WsPid ! {refresh, Msg}
+        end,
+        WsPids),
+    {noreply, State};
+
 handle_info({'EXIT', _NonSelfPid, shutdown}, State) ->
     % https://stackoverflow.com/questions/39430574/unsupervised-gen-server-doesnt-call-terminate-when-it-receives-exit-signal
     {stop, shutdown, State};

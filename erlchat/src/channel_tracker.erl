@@ -3,6 +3,7 @@
 
 -export([
     start_link/0,
+    get_pid/1,
     subscribe/2,
     unsubscribe/2,
     notify_subscribers/2,
@@ -28,11 +29,14 @@ notify_ws_pids([], _Msg) ->
 start_link() -> gen_server:start_link(
     {local, ?MODULE}, ?MODULE, no_passed_state, []).
 
-subscribe(ChannelUuid, WebsocketPid) ->
-    gen_server:cast(?MODULE, {subscribe, ChannelUuid, WebsocketPid}).
+get_pid(ChannelUuid) ->
+    gen_server:call(?MODULE, {get_pid, ChannelUuid}).
 
-unsubscribe(ChannelUuid, WebsocketPid) ->
-    gen_server:cast(?MODULE, {unsubscribe, ChannelUuid, WebsocketPid}).
+subscribe(ChannelUuid, Pid) ->
+    gen_server:cast(?MODULE, {subscribe, ChannelUuid, Pid}).
+
+unsubscribe(ChannelUuid, Pid) ->
+    gen_server:cast(?MODULE, {unsubscribe, ChannelUuid, Pid}).
 
 notify_subscribers(ChannelUuid, Msg) ->
     gen_server:cast(?MODULE, {notify_subscribers, ChannelUuid, Msg}).
@@ -46,21 +50,21 @@ notify_subscribers(NotifierWsPid, ChannelUuid, Msg) when is_pid(NotifierWsPid) -
 init(_Arg) ->
     {ok, #{channel_map => #{}}}.
 
-handle_cast({subscribe, ChannelUuid, WebsocketPid}, State) ->
+handle_cast({subscribe, ChannelUuid, Pid}, State) ->
     WsPidList = nested:get([channel_map, ChannelUuid, ws_pid_list], State, []),
     {noreply, nested:put(
         [channel_map, ChannelUuid, ws_pid_list],
-        WsPidList ++ [WebsocketPid],
+        WsPidList ++ [Pid],
         State)};
 
-handle_cast({unsubscribe, ChannelUuid, WebsocketPid}, State) ->
+handle_cast({unsubscribe, ChannelUuid, Pid}, State) ->
     WsPidList = nested:get([channel_map, ChannelUuid, ws_pid_list], State, no_list),
 
     NewState = case WsPidList of
         no_list -> State;
         List -> nested:update(
             [channel_map, ChannelUuid, ws_pid_list],
-            lists:delete(WebsocketPid, List),
+            lists:delete(Pid, List),
             State)
     end,
 
@@ -80,6 +84,13 @@ handle_cast({notify_subscribers, ChannelUuid, NotifierWsPid, Msg}, State) when i
         [WsPid || WsPid <- WsPidList, WsPid =/= NotifierWsPid],
         Msg),
     {noreply, State}.
+
+handle_call({get_pid, ChannelUuid}, _From, State) ->
+    Return = case nested:get([channel_map, ChannelUuid, ws_pid_list], State, no_pid) of
+        no_pid -> no_pid;
+        [Pid] -> Pid
+    end,
+    {reply, Return, State};
 
 handle_call(_, _From, State) ->
     {reply, nothing, State}.

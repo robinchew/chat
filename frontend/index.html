@@ -13,6 +13,9 @@
         const ws = new WebSocket(buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']));
         const messages = document.getElementById('messages');
 
+        function subscribe() {
+            ws.send('subscribe');
+        }
         function joinChat(chatName) {
             ws.send(['chat', chatName, 'join'].join('|'));
         }
@@ -28,6 +31,7 @@
         const roomName = 'room1_UUID';
 
         ws.onopen = () => {
+            subscribe();
             joinChat(roomName);
         };
         ws.onclose = () => {

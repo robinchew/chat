@@ -18,8 +18,8 @@ init([]) ->
             modules => dynamic
         },
         #{
-            id => channel_tracker_id,
-            start => {channel_tracker, start_link, []},
+            id => channel_pool_id,
+            start => {channel_pool, start_link, []},
             restart => permanent,
             shutdown => 5000,
             type => worker,
