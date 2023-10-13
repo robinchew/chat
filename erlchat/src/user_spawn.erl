@@ -2,6 +2,7 @@
 -behaviour(gen_server).
 -export([
     start_link/1,
+    register_ws_pid/2,
     login/1,
     merge_state/2,
     state/1,
@@ -28,6 +29,9 @@ start_link(User) when is_map(User) ->
 
 login(Pid) ->
     gen_server:call(Pid, login).
+
+register_ws_pid(UserPid, WsPid) ->
+    gen_server:cast(UserPid, {register_ws_pid, WsPid}).
 
 set_email(Pid, Email) ->
     gen_server:cast(Pid, {set_email, Email}).
@@ -58,6 +62,12 @@ init(State) when is_map(State) ->
     % from approver_loop:start_link/3 will be silenced.
     % process_flag(trap_exit, true),
     {ok, State}.
+
+handle_cast({register_ws_pid, WsPid}, State) ->
+    {noreply, nested:update(
+        [ws_pids],
+        fun(WsPids) -> WsPids ++ [WsPid] end,
+        State)};
 
 handle_cast({set_email, Email}, State) ->
     {noreply, State#{

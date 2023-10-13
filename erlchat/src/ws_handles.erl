@@ -8,9 +8,10 @@ on(_WsPid, [<<"ping">>], State) ->
 on(WsPid, [<<"subscribe">>], State) ->
     UserUuid = time(),
     {ok, UserPid} = user_spawner:start_child(#{
-        uuid => time(), % TODO!
-        ws_pids => [WsPid] % TODO need to append WsPid
-    }),
+            uuid => time(), % TODO!
+            ws_pids => []
+        }),
+    user_spawn:register_ws_pid(UserPid, WsPid),
     {[], State#{
         user => #{
             uuid => UserUuid,
