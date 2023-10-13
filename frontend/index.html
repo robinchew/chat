@@ -33,6 +33,9 @@
         ws.onopen = () => {
             subscribe();
             joinChat(roomName);
+            setInterval(
+                () => { ws.send('ping') },
+                1000 * 55);
         };
         ws.onclose = () => {
             renderMessage('<span style="color:red">Connection closed</span>');

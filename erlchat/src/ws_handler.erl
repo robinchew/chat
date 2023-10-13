@@ -33,7 +33,6 @@ websocket_handle(_Frame, State) ->
 	{[], State}.
 
 websocket_info({refresh, Text}, State) ->
-    % Received from notify_subscribers
 	{[{text, Text}], State};
 
 websocket_info(Info, State) ->

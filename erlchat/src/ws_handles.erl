@@ -2,6 +2,8 @@
 -export([
     on/3
 ]).
+on(_WsPid, [<<"ping">>], State) ->
+    {[], State};
 
 on(WsPid, [<<"subscribe">>], State) ->
     UserUuid = time(),
