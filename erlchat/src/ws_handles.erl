@@ -21,7 +21,7 @@ on(_WsPid, [<<"chat">>, ChannelUuid, <<"join">>], State = #{ user := #{ pid := U
     channel_spawn:join(ChannelPid, UserPid),
     {[], State};
 
-on(_WsPid, [<<"chat">>, ChannelUuid, <<"message">>, Message], State) ->
+on(_WsPid, [<<"chat">>, ChannelUuid, <<"message">>, Message], State = #{ user := #{ uuid := UserUuid }}) ->
     ChannelPid = channel_tracker:get_pid(ChannelUuid),
-    channel_spawn:notify_members(ChannelPid, Message),
+    channel_spawn:post(ChannelPid, UserUuid, Message),
     {[], State}. % Respond nothing, rely on notify_subscribers to do the job

@@ -3,7 +3,7 @@
 -export([
     start_link/1,
     join/2,
-    notify_members/2
+    post/3
 ]).
 -export([
     init/1,
@@ -33,8 +33,8 @@ start_link(ChannelUuid) ->
 join(ChannelPid, UserPid) ->
     gen_server:cast(ChannelPid, {join, UserPid}).
 
-notify_members(ChannelPid, Msg) ->
-    gen_server:cast(ChannelPid, {notify_members, Msg}).
+post(ChannelPid, UserUuid, Msg) ->
+    gen_server:cast(ChannelPid, {post, UserUuid, Msg}).
 
 % Private API
 
@@ -43,15 +43,18 @@ init(ChannelUuid) ->
     % execute when supervisor:terminate_child is used to terminate
     % this instance.
     % process_flag(trap_exit, true),
-    {ok, #{channel_uuid => ChannelUuid, members => []}}.
+    {ok, #{channel_uuid => ChannelUuid, members => [], messages => []}}.
 
-handle_cast({join, UserPid},  State) ->
+handle_cast({join, UserPid},  State = #{ messages := Messages }) ->
     erlang:monitor(process, UserPid),
+    lists:foreach(
+        fun({_MessageUserUuid, Msg}) -> notify_user_pids([UserPid], Msg) end,
+        Messages),
     {noreply, nested:update([members], fun(L) -> L ++ [#{pid => UserPid}] end, State)};
 
-handle_cast({notify_members, Msg}, State = #{ members := Members }) ->
+handle_cast({post, UserUuid, Msg}, State = #{ members := Members }) ->
     notify_user_pids(lists:map(fun(#{ pid := UserPid}) -> UserPid end, Members), Msg),
-    {noreply, State};
+    {noreply, nested:update([messages], fun(Messages) -> Messages ++ [{UserUuid, Msg}] end,State)};
 
 handle_cast(_Message,  State) ->
     io:format("casted channel spawnw"),
