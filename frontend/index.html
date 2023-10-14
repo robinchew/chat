@@ -1,56 +1,42 @@
 <head>
+    <script src="libs/seview-2.0.5-unpkg.js"></script>
+    <script src="libs/mithril-2.2.2.js"></script>
     <script src="importEnv.js"></script>
+    <script src="importSeviewMithril.js"></script>
+    <script src="importRenderStream.js"></script>
+    <script src="importExchange.js"></script>
 </head>
 <body>
     <ul id="messages">
     </ul>
     <input id="type_here" />
     <script>
+        function logk(k, v) {
+            console.log(k, v);
+            return v;
+        }
+        const seviewMithril = importSeviewMithril(m);
+        const h = seview.seview(seviewMithril);
+
         function buildUrl(protocol, host, port, path) {
             return `${protocol}://${host}:${port}/` + path.join('/');
         }
         const env = importEnv();
-        const ws = new WebSocket(buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']));
-        const messages = document.getElementById('messages');
+        const exchangeLib = importExchange({ window });
+        const exchange = exchangeLib.init(
+            buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']),
+            {
+                onOpen() {
+                    exchange.joinChat('room1_UUID');
+                },
+            });
 
-        function subscribe() {
-            ws.send('subscribe');
-        }
-        function joinChat(chatName) {
-            ws.send(['chat', chatName, 'join'].join('|'));
-        }
-        function sendMessage(chatName, message) {
-            ws.send(['chat', chatName, 'message', message].join('|'));
-        }
-        function renderMessage(message) {
-            const li = document.createElement('li')
-            li.innerHTML = message;
-            messages.appendChild(li);
-        }
-
-        const roomName = 'room1_UUID';
-
-        ws.onopen = () => {
-            subscribe();
-            joinChat(roomName);
-            setInterval(
-                () => { ws.send('ping') },
-                1000 * 55);
+        const commonImportArgs = {
+            exchange,
         };
-        ws.onclose = () => {
-            renderMessage('<span style="color:red">Connection closed</span>');
-        }
-        ws.onmessage = (d) => {
-            renderMessage(d.data);
-        }
 
-        const input = document.getElementById('type_here');
-        input.focus();
-        input.addEventListener('keyup', e => {
-            if (e.key === 'Enter') {
-                sendMessage(roomName, e.currentTarget.value);
-                e.currentTarget.value = '';
-            }
-        });
+        const messages = document.getElementById('messages');
+        const renderStream = importRenderStream(commonImportArgs);
+        renderStream(seDom => m.render(document.body, h(seDom)));
     </script>
 </body>
