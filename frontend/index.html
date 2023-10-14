@@ -1,4 +1,5 @@
 <head>
+    <script src="libs/flyd-cbb5aec.js"></script>
     <script src="libs/seview-2.0.5-unpkg.js"></script>
     <script src="libs/mithril-2.2.2.js"></script>
     <script src="importEnv.js"></script>
@@ -7,9 +8,6 @@
     <script src="importExchange.js"></script>
 </head>
 <body>
-    <ul id="messages">
-    </ul>
-    <input id="type_here" />
     <script>
         function logk(k, v) {
             console.log(k, v);
@@ -23,20 +21,32 @@
         }
         const env = importEnv();
         const exchangeLib = importExchange({ window });
-        const exchange = exchangeLib.init(
-            buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']),
-            {
-                onOpen() {
-                    exchange.joinChat('room1_UUID');
-                },
-            });
+        const exchangePromise = new Promise(resolve => {
+            const exchange = exchangeLib.init(
+                buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']),
+                {
+                    onOpen() {
+                    console.log("on'");
+                        resolve(exchange);
+                    },
+                });
+        });
+        exchangePromise.then(exchange => {
+            const commonImportArgs = {
+                flyd,
+                exchange,
+            };
+            const initialState = {
+              chat: {
+                selectedRooms: ['room1_uuid'],
+              },
+            };
+            exchange.joinChat(initialState.chat.selectedRooms[0]);
 
-        const commonImportArgs = {
-            exchange,
-        };
-
-        const messages = document.getElementById('messages');
-        const renderStream = importRenderStream(commonImportArgs);
-        renderStream(seDom => m.render(document.body, h(seDom)));
+            const renderStream = importRenderStream(
+                initialState,
+                seDom => m.render(document.body, h(seDom)),
+                commonImportArgs);
+        });
     </script>
 </body>

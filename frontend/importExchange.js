@@ -1,5 +1,4 @@
 function importExchange({ window }) {
-
     return {
       init(url, { onOpen }) {
         const ws = new WebSocket(url);
