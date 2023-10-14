@@ -37,7 +37,6 @@
                 buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']),
                 {
                     onOpen() {
-                    console.log("on'");
                         resolve(exchange);
                     },
                 });
