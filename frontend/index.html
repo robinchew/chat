@@ -4,8 +4,9 @@
     <script src="libs/mithril-2.2.2.js"></script>
     <script src="importEnv.js"></script>
     <script src="importSeviewMithril.js"></script>
-    <script src="importRenderStream.js"></script>
     <script src="importExchange.js"></script>
+    <script src="importRenderStream.js"></script>
+    <script src="views/importChatRoomView.js"></script>
 </head>
 <body>
     <script>
@@ -20,6 +21,16 @@
             return `${protocol}://${host}:${port}/` + path.join('/');
         }
         const env = importEnv();
+
+        const commonImportArgs = {
+            flyd,
+        };
+        const routes = [
+            ['/', 'index', importChatRoomView],
+        ];
+        const routedViews = routes.map(([path, urlName, importView]) =>
+            [path, urlName, importView(commonImportArgs)]);
+
         const exchangeLib = importExchange({ window });
         const exchangePromise = new Promise(resolve => {
             const exchange = exchangeLib.init(
@@ -32,10 +43,6 @@
                 });
         });
         exchangePromise.then(exchange => {
-            const commonImportArgs = {
-                flyd,
-                exchange,
-            };
             const initialState = {
               chat: {
                 selectedRooms: ['room1_uuid'],
@@ -44,9 +51,13 @@
             exchange.joinChat(initialState.chat.selectedRooms[0]);
 
             const renderStream = importRenderStream(
+                flyd,
                 initialState,
-                seDom => m.render(document.body, h(seDom)),
-                commonImportArgs);
+            ).map(state => {
+                m.render(
+                    document.body,
+                    h(routedViews[0][2].render({ state, exchange })));
+              });
         });
     </script>
 </body>
