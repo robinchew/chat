@@ -1,6 +1,7 @@
 function importExchange({ window }) {
+  const resolves = {};
   return {
-    init(url, { onOpen }) {
+    init(url, { onOpen, onMessage }) {
       const ws = new WebSocket(url);
 
       function subscribe() {
@@ -29,7 +30,7 @@ function importExchange({ window }) {
           renderMessage('<span style="color:red">Connection closed</span>');
       }
       ws.onmessage = (d) => {
-          renderMessage(d.data);
+        onMessage(d);
       }
       return {
         joinChat,

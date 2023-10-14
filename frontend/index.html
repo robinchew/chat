@@ -2,6 +2,7 @@
     <script src="libs/flyd-cbb5aec.js"></script>
     <script src="libs/seview-2.0.5-unpkg.js"></script>
     <script src="libs/mithril-2.2.2.js"></script>
+    <script src="libs/patchinko-immutable-dcb7859.js"></script>
     <script src="importEnv.js"></script>
     <script src="importSeviewMithril.js"></script>
     <script src="importExchange.js"></script>
@@ -22,8 +23,18 @@
         }
         const env = importEnv();
 
+        const initialState = {
+          chat: {
+            selectedRooms: ['room1_uuid'],
+            messages: [],
+          },
+        };
+        const { updateState, stream } = importRenderStream(
+            flyd,
+            initialState);
         const commonImportArgs = {
             flyd,
+            updateState,
         };
         const routes = [
             ['/', 'index', importChatRoomView],
@@ -39,20 +50,20 @@
                     onOpen() {
                         resolve(exchange);
                     },
+                    onMessage(obj) {
+                        console.log('ob', obj);
+                        updateState(state => O(state, {
+                            chat: O({
+                                messages: O(list => list.concat([obj.data])),
+                            }),
+                        }));
+                    },
                 });
         });
         exchangePromise.then(exchange => {
-            const initialState = {
-              chat: {
-                selectedRooms: ['room1_uuid'],
-              },
-            };
             exchange.joinChat(initialState.chat.selectedRooms[0]);
 
-            const renderStream = importRenderStream(
-                flyd,
-                initialState,
-            ).map(state => {
+            stream.map(state => {
                 m.render(
                     document.body,
                     h(routedViews[0][2].render({ state, exchange })));

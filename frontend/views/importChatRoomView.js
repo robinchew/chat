@@ -1,8 +1,10 @@
-function importChatRoomView() {
+function importChatRoomView({ updateState }) {
   return {
     render({ state, exchange }) {
       return ['div', [
-        ['ul#messages'],
+        ['ul#messages',
+          state.chat.messages.map(message =>
+            ['li', message])],
         ['input', {
           oncreate({ dom }) {
             dom.focus();
