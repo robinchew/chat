@@ -1,56 +1,73 @@
 <head>
+    <script src="libs/flyd-cbb5aec.js"></script>
+    <script src="libs/seview-2.0.5-unpkg.js"></script>
+    <script src="libs/mithril-2.2.2.js"></script>
+    <script src="libs/patchinko-immutable-dcb7859.js"></script>
     <script src="importEnv.js"></script>
+    <script src="importSeviewMithril.js"></script>
+    <script src="importExchange.js"></script>
+    <script src="importRenderStream.js"></script>
+    <script src="views/importChatRoomView.js"></script>
 </head>
 <body>
-    <ul id="messages">
-    </ul>
-    <input id="type_here" />
     <script>
+        function logk(k, v) {
+            console.log(k, v);
+            return v;
+        }
+        const seviewMithril = importSeviewMithril(m);
+        const h = seview.seview(seviewMithril);
+
         function buildUrl(protocol, host, port, path) {
             return `${protocol}://${host}:${port}/` + path.join('/');
         }
         const env = importEnv();
-        const ws = new WebSocket(buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']));
-        const messages = document.getElementById('messages');
 
-        function subscribe() {
-            ws.send('subscribe');
-        }
-        function joinChat(chatName) {
-            ws.send(['chat', chatName, 'join'].join('|'));
-        }
-        function sendMessage(chatName, message) {
-            ws.send(['chat', chatName, 'message', message].join('|'));
-        }
-        function renderMessage(message) {
-            const li = document.createElement('li')
-            li.innerHTML = message;
-            messages.appendChild(li);
-        }
-
-        const roomName = 'room1_UUID';
-
-        ws.onopen = () => {
-            subscribe();
-            joinChat(roomName);
-            setInterval(
-                () => { ws.send('ping') },
-                1000 * 55);
+        const initialState = {
+          chat: {
+            selectedRooms: ['room1_uuid'],
+            messages: [],
+          },
         };
-        ws.onclose = () => {
-            renderMessage('<span style="color:red">Connection closed</span>');
-        }
-        ws.onmessage = (d) => {
-            renderMessage(d.data);
-        }
+        const { updateState, stream } = importRenderStream(
+            flyd,
+            initialState);
+        const commonImportArgs = {
+            flyd,
+            updateState,
+        };
+        const routes = [
+            ['/', 'index', importChatRoomView],
+        ];
+        const routedViews = routes.map(([path, urlName, importView]) =>
+            [path, urlName, importView(commonImportArgs)]);
 
-        const input = document.getElementById('type_here');
-        input.focus();
-        input.addEventListener('keyup', e => {
-            if (e.key === 'Enter') {
-                sendMessage(roomName, e.currentTarget.value);
-                e.currentTarget.value = '';
-            }
+        const exchangeLib = importExchange({ window });
+        const exchangePromise = new Promise(resolve => {
+            const exchange = exchangeLib.init(
+                buildUrl(env.WS_PROTOCOL, env.WS_HOST, env.WS_PORT, ['FAKE_SESSION_UUID']),
+                {
+                    onOpen() {
+                        resolve(exchange);
+                    },
+                    onMessage(obj) {
+                        console.log('ob', obj);
+                        updateState(state => O(state, {
+                            chat: O({
+                                messages: O(list => list.concat([obj.data])),
+                            }),
+                        }));
+                    },
+                });
+        });
+        exchangePromise.then(exchange => {
+            exchange.joinChat(initialState.chat.selectedRooms[0]);
+
+            stream.map(state => {
+                m.render(
+                    document.body,
+                    h(routedViews[0][2].render({ state, exchange })));
+              });
         });
     </script>
 </body>
