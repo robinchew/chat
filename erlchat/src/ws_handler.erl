@@ -22,8 +22,8 @@ websocket_init(State) ->
     }}.
 
 websocket_handle({text, Data}, State = #{websocket_pid := WsPid}) ->
-    Responses = ws_handles:on(WsPid, string:split(Data, "|", all)),
-	{[{text, Text} || Text <- Responses], State};
+    {Responses, NewState} = ws_handles:on(WsPid, string:split(Data, "|", all), State),
+	{[{text, Text} || Text <- Responses], NewState};
 
 websocket_handle({binary, Data}, State) ->
     io:format("bni~p~n", [Data]),
@@ -33,7 +33,6 @@ websocket_handle(_Frame, State) ->
 	{[], State}.
 
 websocket_info({refresh, Text}, State) ->
-    % Received from notify_subscribers
 	{[{text, Text}], State};
 
 websocket_info(Info, State) ->

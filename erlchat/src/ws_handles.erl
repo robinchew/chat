@@ -1,23 +1,35 @@
 -module(ws_handles).
 -export([
-    on/2
+    on/3
 ]).
+on(_WsPid, [<<"ping">>], State) ->
+    {[], State};
 
-on(WsPid, [<<"chat">>, ChannelUuid, <<"join">>]) ->
-    channel_manager:subscribe(ChannelUuid, WsPid),
-    [];
+on(WsPid, [<<"subscribe">>], State) ->
+    UserUuid = time(),
+    {ok, UserPid} = user_spawner:start_child(#{
+            uuid => time(), % TODO!
+            ws_pids => []
+        }),
+    user_spawn:register_ws_pid(UserPid, WsPid),
+    {[], State#{
+        user => #{
+            uuid => UserUuid,
+            pid => UserPid
+        }
+    }};
 
-on(WsPid, [<<"chat">>, ChannelUuid, <<"leave">>]) ->
-    channel_manager:unsubscribe(ChannelUuid, WsPid),
-    [];
+on(_WsPid, [<<"chat">>, ChannelUuid, <<"join">>], State = #{ user := #{ pid := UserPid }}) ->
+    {ok, ChannelPid} = channel_spawner:start_child(ChannelUuid),
+    channel_spawn:join(ChannelPid, UserPid),
+    {[], State};
 
 on(_WsPid, [<<"ping">>]) ->
     % log then return pong
     % io:format("ping from ~p~n", [WsPid]),
     [<<"pong">>];
 
-on(_WsPid, [<<"chat">>, ChannelUuid, <<"message">>, Message]) ->
-    io:format("message ~p~n", [Message]),
-    % set the message to TEXT of "chat|<message>" so clients can distinguish
-    channel_manager:notify_subscribers(ChannelUuid, [<<"chat|">>, Message]),
-    []. % Respond nothing, rely on notify_subscribers to do the job
+on(_WsPid, [<<"chat">>, ChannelUuid, <<"message">>, Message], State = #{ user := #{ uuid := UserUuid }}) ->
+    ChannelPid = channel_tracker:get_pid(ChannelUuid),
+    channel_spawn:post(ChannelPid, UserUuid, Message),
+    {[], State}. % Respond nothing, rely on notify_subscribers to do the job
