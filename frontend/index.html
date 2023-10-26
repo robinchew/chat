@@ -1,13 +1,16 @@
 <head>
     <script src="libs/flyd-cbb5aec.js"></script>
+    <script src="libs/ramda-0.29.1.js"></script>
     <script src="libs/seview-2.0.5-unpkg.js"></script>
     <script src="libs/mithril-2.2.2.js"></script>
     <script src="libs/patchinko-immutable-dcb7859.js"></script>
     <script src="importEnv.js"></script>
+    <script src="importRoutes.js"></script>
     <script src="importSeviewMithril.js"></script>
     <script src="importExchange.js"></script>
     <script src="importRenderStream.js"></script>
     <script src="views/importChatRoomView.js"></script>
+    <script src="views/importExampleView.js"></script>
 </head>
 <body>
     <script>
@@ -22,6 +25,7 @@
             return `${protocol}://${host}:${port}/` + path.join('/');
         }
         const env = importEnv();
+        const routeLib = importRoutes({ patchinko: O, ramda: R, window });
 
         const initialState = {
           chat: {
@@ -38,9 +42,16 @@
         };
         const routes = [
             ['/', 'index', importChatRoomView],
+            ['/example', 'example', importExampleView],
+            ['/example/:num/egg/:val', 'example2', importExampleView],
         ];
         const routedViews = routes.map(([path, urlName, importView]) =>
             [path, urlName, importView(commonImportArgs)]);
+
+        const { changeView, getCurrentRoute } = routeLib.init(routedViews, { hash: true })
+
+        const [[, urlName], params] = getCurrentRoute();
+        updateState(changeView(urlName, params));
 
         const exchangeLib = importExchange({ window });
         const exchangePromise = new Promise(resolve => {
@@ -58,7 +69,6 @@
                             // chat|room1_uuid|msgcontent
                             // just get the message
                             const messageContent = obj.data.split('|')[2];
-                            console.log('ob', obj);
                             updateState(state => O(state, {
                                 chat: O({
                                     messages: O(list => list.concat([messageContent])),
@@ -74,7 +84,7 @@
             stream.map(state => {
                 m.render(
                     document.body,
-                    h(routedViews[0][2].render({ state, exchange })));
+                    h(state.view.render({ state, exchange })));
               });
         });
     </script>
