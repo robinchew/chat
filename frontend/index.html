@@ -52,12 +52,20 @@
                         resolve(exchange);
                     },
                     onMessage(obj) {
-                        console.log('ob', obj);
-                        updateState(state => O(state, {
-                            chat: O({
-                                messages: O(list => list.concat([obj.data])),
-                            }),
-                        }));
+                        // check type of message
+                        if (obj.data === 'pong') {
+                            return;
+                        } else if (obj.data.startsWith('chat')) {
+                            // chat|room1_uuid|msgcontent
+                            // just get the message
+                            const messageContent = obj.data.split('|')[2];
+                            console.log('ob', obj);
+                            updateState(state => O(state, {
+                                chat: O({
+                                    messages: O(list => list.concat([messageContent])),
+                                }),
+                            }));
+                        }
                     },
                 });
         });

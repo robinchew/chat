@@ -3,7 +3,9 @@
     on/3
 ]).
 on(_WsPid, [<<"ping">>], State) ->
-    {[], State};
+    {[
+        <<"pong">>
+    ], State};
 
 on(WsPid, [<<"subscribe">>], State) ->
     UserUuid = time(),
@@ -24,12 +26,8 @@ on(_WsPid, [<<"chat">>, ChannelUuid, <<"join">>], State = #{ user := #{ pid := U
     channel_spawn:join(ChannelPid, UserPid),
     {[], State};
 
-on(_WsPid, [<<"ping">>]) ->
-    % log then return pong
-    % io:format("ping from ~p~n", [WsPid]),
-    [<<"pong">>];
-
 on(_WsPid, [<<"chat">>, ChannelUuid, <<"message">>, Message], State = #{ user := #{ uuid := UserUuid }}) ->
     ChannelPid = channel_tracker:get_pid(ChannelUuid),
-    channel_spawn:post(ChannelPid, UserUuid, Message),
+    % join "chat|" and channel uuid and message
+    channel_spawn:post(ChannelPid, UserUuid, <<"chat|", ChannelUuid/binary, "|", Message/binary>>),
     {[], State}. % Respond nothing, rely on notify_subscribers to do the job

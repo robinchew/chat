@@ -23,7 +23,7 @@ websocket_init(State) ->
 
 websocket_handle({text, Data}, State = #{websocket_pid := WsPid}) ->
     {Responses, NewState} = ws_handles:on(WsPid, string:split(Data, "|", all), State),
-	{[{text, Text} || Text <- Responses], NewState};
+    {[{text, Text} || Text <- Responses], NewState};
 
 websocket_handle({binary, Data}, State) ->
     io:format("bni~p~n", [Data]),

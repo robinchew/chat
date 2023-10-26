@@ -51,8 +51,15 @@ rm -rf ~/darkhttpd
 darkhttpd ./frontend --port 8080
 ```
 
+```bash
+# Run backend
+cd erlchat
+bash ./run.sh
+```
+
 ## Timesheet
 
 | Date | Time | Description |
 | --- | --- | --- |
 | 2023-10-09 | 1-2 AM | Setup project - added hot reload with sync package, ping heartbeat, gitignore, and chat\| in response for differentiating between events client side |
+| 2023-10-26 | 2:45-2:55 PM | Understand changes, fix ping heartbeat, add chat\| in response for differentiating between events client side |
