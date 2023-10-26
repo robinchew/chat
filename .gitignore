@@ -4,3 +4,6 @@ erlchat/.erlang.mk
 erlchat/deps
 erlchat/ebin
 erlchat/erlchat.d
+
+# importEnv.js
+frontend/importEnv.js
