@@ -54,10 +54,10 @@
             ['/channels', 'channels', importChatRoomSelectionView],
         ];
         const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
-        const changeView = (name, params) => {
+        const changeView = (name, ...args) => {
             const [,, importView] = routes.find(([, urlName]) => urlName === name);
             return state => ({
-                ...cView(name, params)(state),
+                ...cView(name, ...args)(state),
                 view: importView(commonImportArgs),
             });
         };
@@ -66,25 +66,33 @@
             updateState,
             changeView,
         };
-        (() => {
-            // View will be determined based on current path
-            // and is called on page load
-            const route = getCurrentRoute();
-            if (route) {
-                const [[, urlName], params] = route;
-                updateState(changeView(urlName, params, { noPush: true }));
-            } else {
+
+        updateState(changeView(
+            ...(() => {
+                // View will be determined based on current path
+                // and is called on page load
+                const route = getCurrentRoute();
+                if (route) {
+                    const [[, urlName], params] = route;
+                    return [urlName, params];
+                }
                 // Default to index on page load if view cannot be determined
-                updateState(changeView('index', {}, { noPush: true }));
-            }
-        })();
+                return ['index', {}];
+            })(),
+            {
+                // No need to push on page load,
+                // history state would have been initiated.
+                noPush: true,
+            }));
 
         window.addEventListener('popstate', () => {
           // This is expected to execute on:
           // 1. Pressing browser back button
           // 2. Following href links.
           const [[, urlName], params] = getCurrentRoute();
-          updateState(changeView(urlName, params));
+
+          // Don't push when pop happens after push
+          updateState(changeView(urlName, params, { noPush: true }));
         });
 
         const exchangeLib = importExchange({ window });
