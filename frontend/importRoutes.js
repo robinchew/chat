@@ -34,11 +34,11 @@ function importRoutes({
       return [item, found.groups];
     });
   }
-  const changeView = (routes, hashRouteMode) => (urlName, params = {}) => {
+  const changeView = (routes, hashRouteMode) => (urlName, params = {}, options = {}) => {
     const encodedParams = map(encodeURIComponent, params || {});
     const path = generatePath(routes, urlName, encodedParams);
     return st => {
-      window.history.pushState(
+      ! options.noPush && window.history.pushState(
         {},
         '',
         (hashRouteMode ? '#' : '') + path);

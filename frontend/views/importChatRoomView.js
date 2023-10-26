@@ -1,7 +1,16 @@
-function importChatRoomView({ updateState }) {
+function importChatRoomView({ changeView, updateState }) {
   return {
     render({ state, exchange }) {
       return ['div', [
+        ['a',
+          {
+            href: '',
+            onclick(e) {
+              e.preventDefault();
+              updateState(changeView('channels'));
+            },
+          },
+          'Room'],
         ['h2', { style: { margin: 0 } }, 'Messages for room: ' + state.chat.selectedRoom],
         ['ul#messages',
           state.chat.rooms[state.chat.selectedRoom].messages.map(message =>

@@ -57,7 +57,7 @@
         const changeView = (name, params) => {
             const [,, importView] = routes.find(([, urlName]) => urlName === name);
             return state => ({
-                ...cView(urlName, params)(state),
+                ...cView(name, params)(state),
                 view: importView(commonImportArgs),
             });
         };
@@ -66,8 +66,26 @@
             updateState,
             changeView,
         };
-        const [[, urlName], params] = getCurrentRoute();
-        updateState(changeView(urlName, params));
+        (() => {
+            // View will be determined based on current path
+            // and is called on page load
+            const route = getCurrentRoute();
+            if (route) {
+                const [[, urlName], params] = route;
+                updateState(changeView(urlName, params, { noPush: true }));
+            } else {
+                // Default to index on page load if view cannot be determined
+                updateState(changeView('index', {}, { noPush: true }));
+            }
+        })();
+
+        window.addEventListener('popstate', () => {
+          // This is expected to execute on:
+          // 1. Pressing browser back button
+          // 2. Following href links.
+          const [[, urlName], params] = getCurrentRoute();
+          updateState(changeView(urlName, params));
+        });
 
         const exchangeLib = importExchange({ window });
         const exchangePromise = new Promise(resolve => {
@@ -102,7 +120,6 @@
             exchange.joinChat(initialState.chat.selectedRoom);
 
             stream.map(state => {
-                console.log('state', state);
                 m.render(
                     document.body,
                     h(state.view.render({ state, exchange })));
