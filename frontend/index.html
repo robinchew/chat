@@ -8,8 +8,14 @@
     <script src="importExchange.js"></script>
     <script src="importRenderStream.js"></script>
     <script src="views/importChatRoomView.js"></script>
+    <script src="views/importChatRoomSelectionView.js"></script>
 </head>
 <body>
+
+    <h1>Hi</h1>
+    <div id="room-container"></div>
+    <div id="chat-container"></div>
+
     <script>
         function logk(k, v) {
             console.log(k, v);
@@ -25,8 +31,13 @@
 
         const initialState = {
           chat: {
-            selectedRooms: ['room1_uuid'],
-            messages: [],
+            selectedRoom: 'room1_uuid',
+            rooms: {
+              room1_uuid: {
+                name: 'room1',
+                messages: [],
+              },
+            },
           },
         };
         const { updateState, stream } = importRenderStream(
@@ -38,6 +49,7 @@
         };
         const routes = [
             ['/', 'index', importChatRoomView],
+            ['/channels', 'channels', importChatRoomSelectionView],
         ];
         const routedViews = routes.map(([path, urlName, importView]) =>
             [path, urlName, importView(commonImportArgs)]);
@@ -61,7 +73,11 @@
                             console.log('ob', obj);
                             updateState(state => O(state, {
                                 chat: O({
-                                    messages: O(list => list.concat([messageContent])),
+                                    rooms: O({
+                                        [state.chat.selectedRoom]: O({
+                                            messages: O(list => list.concat([messageContent])),
+                                        }),
+                                    }),
                                 }),
                             }));
                         }
@@ -69,13 +85,18 @@
                 });
         });
         exchangePromise.then(exchange => {
-            exchange.joinChat(initialState.chat.selectedRooms[0]);
+            exchange.joinChat(initialState.chat.selectedRoom);
 
             stream.map(state => {
+                console.log('state', state);
                 m.render(
-                    document.body,
+                    document.getElementById('chat-container'),
                     h(routedViews[0][2].render({ state, exchange })));
-              });
+                m.render(
+                    document.getElementById('room-container'),
+                    h(routedViews[1][2].render({ state, exchange })));
+            });
+
         });
     </script>
 </body>
