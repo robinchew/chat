@@ -1,0 +1,6 @@
+# Erlang Build
+erlchat/_rel
+erlchat/.erlang.mk
+erlchat/deps
+erlchat/ebin
+erlchat/erlchat.d
