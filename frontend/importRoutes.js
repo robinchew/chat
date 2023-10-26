@@ -42,16 +42,12 @@ function importRoutes({
         {},
         '',
         (hashRouteMode ? '#' : '') + path);
-      const [,, view] = routes.find(([, name]) =>
-        name === urlName);
-      return (view.onRouteState || identity)(O(st, {
-        view,
+      return O(st, {
         route: {
-          // path,
           name: urlName,
           params,
         },
-      }));
+      });
     };
   };
   return {

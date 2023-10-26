@@ -47,21 +47,25 @@
         const { updateState, stream } = importRenderStream(
             flyd,
             initialState);
-        const commonImportArgs = {
-            flyd,
-            updateState,
-        };
         const routes = [
             ['/', 'index', importChatRoomView],
             ['/example', 'example', importExampleView],
             ['/example/:num/egg/:val', 'example2', importExampleView],
             ['/channels', 'channels', importChatRoomSelectionView],
         ];
-        const routedViews = routes.map(([path, urlName, importView]) =>
-            [path, urlName, importView(commonImportArgs)]);
-
-        const { changeView, getCurrentRoute } = routeLib.init(routedViews, { hash: true })
-
+        const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
+        const changeView = (name, params) => {
+            const [,, importView] = routes.find(([, urlName]) => urlName === name);
+            return state => ({
+                ...cView(urlName, params)(state),
+                view: importView(commonImportArgs),
+            });
+        };
+        const commonImportArgs = {
+            flyd,
+            updateState,
+            changeView,
+        };
         const [[, urlName], params] = getCurrentRoute();
         updateState(changeView(urlName, params));
 
