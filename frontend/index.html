@@ -19,8 +19,7 @@
         const h = seview.seview(seviewMithril);
 
         function buildUrl(protocol, host, port, path) {
-            // return `${protocol}://${host}:${port}/` + path.join('/');
-            return `${protocol}://${host}/` + path.join('/');
+            return `${protocol}://${host}:${port}/` + path.join('/');
         }
         const env = importEnv();
 
