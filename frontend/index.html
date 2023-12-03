@@ -4,7 +4,7 @@
     <script src="libs/seview-2.0.5-unpkg.js"></script>
     <script src="libs/mithril-2.2.2.js"></script>
     <script src="libs/patchinko-immutable-dcb7859.js"></script>
-    <script src="importEnv.js"></script>
+    <script src="importEnv2.js"></script>
     <script src="importRoutes.js"></script>
     <script src="importSeviewMithril.js"></script>
     <script src="importExchange.js"></script>
@@ -30,7 +30,7 @@
         function buildUrl(protocol, host, port, path) {
             return `${protocol}://${host}:${port}/` + path.join('/');
         }
-        const env = importEnv();
+        const env = importEnv2();
         const routeLib = importRoutes({ patchinko: O, ramda: R, window });
 
         const initialState = {
