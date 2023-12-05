@@ -11,9 +11,9 @@ function importChatRoomView({ changeView, updateState }) {
             },
           },
           'Room'],
-        ['h2', { style: { margin: 0 } }, 'Messages for room: ' + state.chat.selectedRoom],
+        ['h2', { style: { margin: 0 } }, 'Messages for room: ' + state.route.params.channel_key],
         ['ul#messages',
-          state.chat.rooms[state.chat.selectedRoom].messages.map(message =>
+          state.chat.rooms[state.route.params.channel_key].messages.map(message =>
             ['li', message])],
         ['input', {
           oncreate({ dom }) {
@@ -21,7 +21,7 @@ function importChatRoomView({ changeView, updateState }) {
           },
           onkeyup(e) {
             if (e.key === 'Enter') {
-              exchange.sendMessage(state.chat.selectedRoom, e.currentTarget.value);
+              exchange.sendMessage(state.route.params.channel_key, e.currentTarget.value);
               e.currentTarget.value = '';
             }
           },

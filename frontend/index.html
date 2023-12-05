@@ -35,7 +35,6 @@
 
         const initialState = {
           chat: {
-            selectedRoom: 'room1_uuid',
             rooms: {
               room1_uuid: {
                 name: 'room1',
@@ -48,9 +47,10 @@
             flyd,
             initialState);
         const routes = [
-            ['/', 'index', importChatRoomView],
+            ['/', 'index', importChatRoomSelectionView],
             ['/example', 'example', importExampleView],
             ['/example/:num/egg/:val', 'example2', importExampleView],
+            ['/channel/:channel_key', 'channel', importChatRoomView],
             ['/channels', 'channels', importChatRoomSelectionView],
         ];
         const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
@@ -65,6 +65,8 @@
             flyd,
             updateState,
             changeView,
+            ramda: R,
+            patchinko: O,
         };
 
         updateState(changeView(
@@ -114,7 +116,7 @@
                             updateState(state => O(state, {
                                 chat: O({
                                     rooms: O({
-                                        [state.chat.selectedRoom]: O({
+                                        [state.route.params.channel_key]: O({
                                             messages: O(list => list.concat([messageContent])),
                                         }),
                                     }),
@@ -125,8 +127,6 @@
                 });
         });
         exchangePromise.then(exchange => {
-            exchange.joinChat(initialState.chat.selectedRoom);
-
             stream.map(state => {
                 m.render(
                     document.body,
