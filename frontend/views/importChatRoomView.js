@@ -1,5 +1,5 @@
 function importChatRoomView({ changeView, updateState }) {
-  return {
+  return messages => ({
     render({ state, exchange }) {
       return ['div', [
         ['a',
@@ -13,7 +13,7 @@ function importChatRoomView({ changeView, updateState }) {
           'Room'],
         ['h2', { style: { margin: 0 } }, 'Messages for room: ' + state.route.params.channel_key],
         ['ul#messages',
-          state.chat.rooms[state.route.params.channel_key].messages.map(message =>
+          messages.map(message =>
             ['li', message])],
         ['input', {
           oncreate({ dom }) {
@@ -28,5 +28,5 @@ function importChatRoomView({ changeView, updateState }) {
         }]
       ]];
     },
-  };
+  });
 }
