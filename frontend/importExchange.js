@@ -16,8 +16,8 @@ function importExchange({ window }) {
       function renderMessage(message) {
         const messages = document.getElementById('messages');
         const li = document.createElement('li')
-        // li.innerHTML = message;
-        // messages.appendChild(li);
+        li.innerHTML = message;
+        messages.appendChild(li);
       }
       ws.onopen = () => {
         subscribe();

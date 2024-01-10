@@ -12,7 +12,6 @@
     <script src="views/importChatRoomView.js"></script>
     <script src="views/importExampleView.js"></script>
     <script src="views/importChatRoomSelectionView.js"></script>
-    <script src="views/importMultiChatRoomsView.js"></script>
 </head>
 <body>
 
@@ -39,11 +38,7 @@
             rooms: {
               room1_uuid: {
                 name: 'room1',
-                messages: ['room1 message'],
-              },
-              room2_uuid: {
-                name: 'room2',
-                messages: ['room 2 message', '2nd room2 message'],
+                messages: [],
               },
             },
           },
@@ -51,18 +46,8 @@
         const { updateState, stream } = importRenderStream(
             flyd,
             initialState);
-
-        const views = {
-            chatroom: importChatRoomView({
-                flyd,
-                updateState,
-                ramda: R,
-                patchinko: O,
-            }),
-        };
-
         const routes = [
-            ['/', 'index', importMultiChatRoomsView(views)],
+            ['/', 'index', importChatRoomSelectionView],
             ['/example', 'example', importExampleView],
             ['/example/:num/egg/:val', 'example2', importExampleView],
             ['/channel/:channel_key', 'channel', importChatRoomView],
@@ -143,7 +128,6 @@
         });
         exchangePromise.then(exchange => {
             stream.map(state => {
-                // console.log('vir', state.view.render, state);
                 m.render(
                     document.body,
                     h(state.view.render({ state, exchange })));
