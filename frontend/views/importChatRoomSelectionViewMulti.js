@@ -1,29 +1,43 @@
 // list of rooms that can be clicked,
 // on click, log the value of the room (uuid)
 // state.chat.rooms is an object with keys for each room
-function importChatRoomSelectionView({
+const importChatRoomSelectionViewMulti = (importChatRoomViewMulti) => (({
   ramda: {
     pipe,
   },
   changeView,
   openView,
-  updateState
-}) {
+  updateState,
+}) => {
     return {
         render({ state, exchange }) {
+			const rooms = Object.keys(state.chat.rooms).map(function (channelKey) {
+				console.log(channelKey);
+				return importChatRoomViewMulti({
+				  ramda: {
+					pipe,
+				  },
+				  changeView,
+				  openView,
+				  updateState,
+				  channelKey
+				})
+			});
             return ['div',
-                ['p', { onclick: () => {
-                    updateState(changeView('multichannels'))
-                }},'Multi-room'],
+				['p',
+				  {
+					onclick(e) {
+					  e.preventDefault();
+					  updateState(changeView('channels'));
+					},
+				  },
+				  'Room'],
+				['h1', {}, 'Multi Room View'],
                 ['h2', { style: { margin: 0 } }, 'Select a room'],
                 [
                     ['ul#rooms',
                         Object.keys(state.chat.rooms).map((room) => {
                             return ['li', { onclick: () => {
-                                // change room
-                                updateState(changeView('channel', {
-                                    channel_key: room,
-                                }));
                                 // subscribe to room
                                 exchange.joinChat(room);
                             }}, room];
@@ -34,9 +48,6 @@ function importChatRoomSelectionView({
                         onkeyup(e) {
                             if (e.key === 'Enter') {
                                 updateState(pipe(
-                                  changeView('channel', {
-                                    channel_key: e.currentTarget.value,
-                                  }),
                                   state => O(state, {
                                       chat: O({
                                           rooms: O({
@@ -51,8 +62,9 @@ function importChatRoomSelectionView({
                             }
                         },
                     }],
+					rooms.map(room => room.render({state,exchange}))
                 ]
             ];
         }
     };
-}
+});
