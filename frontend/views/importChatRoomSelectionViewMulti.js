@@ -10,15 +10,9 @@ const importChatRoomSelectionViewMulti = (importChatRoomViewMulti) => ((importAr
       openView,
       updateState,
     } = importArgs;
+    const chatView = importChatRoomViewMulti(importArgs);
     return {
         render({ state, exchange }) {
-			const rooms = Object.keys(state.chat.rooms).map(function (channelKey) {
-				console.log(channelKey);
-				return importChatRoomViewMulti({
-          ...importArgs,
-          channelKey,
-        });
-			});
             return ['div',
 				['p',
 				  {
@@ -58,7 +52,7 @@ const importChatRoomSelectionViewMulti = (importChatRoomViewMulti) => ((importAr
                             }
                         },
                     }],
-					rooms.map(room => room.render({state,exchange}))
+					Object.keys(state.chat.rooms).map(channelKey => chatView.render({state,exchange, channelKey }))
                 ]
             ];
         }

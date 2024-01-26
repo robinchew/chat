@@ -1,6 +1,6 @@
-function importChatRoomViewMulti({ changeView, updateState, channelKey }) {
+function importChatRoomViewMulti({ changeView, updateState }) {
   return {
-    render({ state, exchange }) {
+    render({ state, exchange, channelKey }) {
       return ['div', [
         ['h2', { style: { margin: 0 } }, 'Messages for room: ' + channelKey],
         ['ul#messages',
