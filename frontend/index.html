@@ -55,7 +55,11 @@
             ['/example/:num/egg/:val', 'example2', importExampleView],
             ['/channel/:channel_key', 'channel', importChatRoomView],
             ['/channels', 'channels', importChatRoomSelectionView],
-            ['/multichannels','multichannels', importChatRoomSelectionViewMulti(importChatRoomViewMulti)],
+            ['/multichannels','multichannels', importArgs =>
+                importChatRoomSelectionViewMulti({
+                    ...importArgs,
+                    chatView: importChatRoomViewMulti(importArgs),
+                })],
         ];
         const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
         const changeView = (name, ...args) => {
