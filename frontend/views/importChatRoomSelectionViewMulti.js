@@ -1,27 +1,23 @@
 // list of rooms that can be clicked,
 // on click, log the value of the room (uuid)
 // state.chat.rooms is an object with keys for each room
-const importChatRoomSelectionViewMulti = (importChatRoomViewMulti) => (({
-  ramda: {
-    pipe,
-  },
-  changeView,
-  openView,
-  updateState,
-}) => {
+const importChatRoomSelectionViewMulti = (importChatRoomViewMulti) => ((importArgs) => {
+    const {
+      ramda: {
+        pipe,
+      },
+      changeView,
+      openView,
+      updateState,
+    } = importArgs;
     return {
         render({ state, exchange }) {
 			const rooms = Object.keys(state.chat.rooms).map(function (channelKey) {
 				console.log(channelKey);
 				return importChatRoomViewMulti({
-				  ramda: {
-					pipe,
-				  },
-				  changeView,
-				  openView,
-				  updateState,
-				  channelKey
-				})
+          ...importArgs,
+          channelKey,
+        });
 			});
             return ['div',
 				['p',
