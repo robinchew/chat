@@ -6,7 +6,6 @@ function importChatRoomSelectionView({
     pipe,
   },
   changeView,
-  openView,
   updateState
 }) {
     return {
@@ -22,7 +21,7 @@ function importChatRoomSelectionView({
                             return ['li', { onclick: () => {
                                 // change room
                                 updateState(changeView('channel', {
-                                    channel_key: room,
+                                  channel_key: room,
                                 }));
                                 // subscribe to room
                                 exchange.joinChat(room);
