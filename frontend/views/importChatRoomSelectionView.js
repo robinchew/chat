@@ -11,6 +11,9 @@ function importChatRoomSelectionView({
     return {
         render({ state, exchange }) {
             return ['div',
+                ['p', { onclick: () => {
+                    updateState(changeView('multichannels'))
+                }},'Multi-room'],
                 ['h2', { style: { margin: 0 } }, 'Select a room'],
                 [
                     ['ul#rooms',
@@ -46,7 +49,7 @@ function importChatRoomSelectionView({
                                 e.currentTarget.value = '';
                             }
                         },
-                    }]
+                    }],
                 ]
             ];
         }

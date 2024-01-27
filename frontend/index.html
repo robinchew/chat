@@ -10,8 +10,10 @@
     <script src="importExchange.js"></script>
     <script src="importRenderStream.js"></script>
     <script src="views/importChatRoomView.js"></script>
+    <script src="views/importChatRoomViewMulti.js"></script>
     <script src="views/importExampleView.js"></script>
     <script src="views/importChatRoomSelectionView.js"></script>
+    <script src="views/importChatRoomSelectionViewMulti.js"></script>
 </head>
 <body>
 
@@ -34,24 +36,26 @@
         const routeLib = importRoutes({ patchinko: O, ramda: R, window });
 
         const initialState = {
-          chat: {
-            rooms: {
-              room1_uuid: {
-                name: 'room1',
-                messages: [],
-              },
+            chat: {
+                rooms: {
+//                  room1_uuid: {
+//                  name: 'room1',
+//                  messages: [],
+//                  },
+                },
             },
-          },
         };
         const { updateState, stream } = importRenderStream(
             flyd,
-            initialState);
+            initialState
+        );
         const routes = [
             ['/', 'index', importChatRoomSelectionView],
             ['/example', 'example', importExampleView],
             ['/example/:num/egg/:val', 'example2', importExampleView],
             ['/channel/:channel_key', 'channel', importChatRoomView],
             ['/channels', 'channels', importChatRoomSelectionView],
+            ['/multichannels','multichannels', importChatRoomSelectionViewMulti(importChatRoomViewMulti)],
         ];
         const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
         const changeView = (name, ...args) => {
@@ -107,17 +111,17 @@
                     },
                     onMessage(obj) {
                         // check type of message
-                        if (obj.data === 'pong') {
+                        const data = obj.data.split('|');
+                        if (data[0] === 'pong') {
                             return;
-                        } else if (obj.data.startsWith('chat')) {
-                            // chat|room1_uuid|msgcontent
+                        } else if (data[0] === 'chat') {
+                            const [chat, room_uuid, msg] = data;
                             // just get the message
-                            const messageContent = obj.data.split('|')[2];
                             updateState(state => O(state, {
                                 chat: O({
                                     rooms: O({
-                                        [state.route.params.channel_key]: O({
-                                            messages: O(list => list.concat([messageContent])),
+                                        [room_uuid]: O({
+                                            messages: O(list => list.concat([msg])),
                                         }),
                                     }),
                                 }),

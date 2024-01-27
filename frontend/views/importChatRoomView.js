@@ -2,9 +2,8 @@ function importChatRoomView({ changeView, updateState }) {
   return {
     render({ state, exchange }) {
       return ['div', [
-        ['a',
+        ['p',
           {
-            href: '',
             onclick(e) {
               e.preventDefault();
               updateState(changeView('channels'));
