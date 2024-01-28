@@ -53,9 +53,18 @@
             ['/', 'index', importChatRoomSelectionView],
             ['/example', 'example', importExampleView],
             ['/example/:num/egg/:val', 'example2', importExampleView],
-            ['/channel/:channel_key', 'channel', importChatRoomView],
+            ['/channel/:channel_key', 'channel', importArgs => {
+                const chatView = importChatRoomViewMulti(importArgs);
+                return {
+                    render: (args) => chatView.render({ ...args, channelKey: args.state.route.params.channel_key })
+                }
+            }],
             ['/channels', 'channels', importChatRoomSelectionView],
-            ['/multichannels','multichannels', importChatRoomSelectionViewMulti(importChatRoomViewMulti)],
+            ['/multichannels','multichannels', importArgs =>
+                importChatRoomSelectionViewMulti({
+                    ...importArgs,
+                    chatView: importChatRoomViewMulti(importArgs),
+                })],
         ];
         const { changeView: cView, getCurrentRoute } = routeLib.init(routes, { hash: true })
         const changeView = (name, ...args) => {
