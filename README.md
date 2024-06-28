@@ -15,6 +15,10 @@ firefox index.html
 
 ## Troubleshoot
 
+### http://localhost:8080 shows nothing
+
+Erlang is being used mainly for websocket, and does not serve index.html, so it is not mean to load any page. Just launch index.html directly with your browser, see [quick start](#quick-start).
+
 # Notes
 
 May need to set a flag for a user_spawn to terminate
