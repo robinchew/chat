@@ -1,3 +1,22 @@
+# Quick Start
+
+Run erlang server:
+```sh
+cd erlchat
+./run_container.sh
+```
+
+Open index.html directly in browser (Erlang or any HTTP server does not need to serve this index page)
+```
+cd frontend
+cp importEnv.example.js importEnv.js
+firefox index.html
+```
+
+## Troubleshoot
+
+# Notes
+
 May need to set a flag for a user_spawn to terminate
 
 Work out if terminate in user_spawn is needed
