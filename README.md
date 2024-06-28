@@ -1,6 +1,6 @@
 # Quick Start
 
-Run erlang server:
+Run erlang server in a container using [buildah](https://buildah.io):
 ```sh
 cd erlchat
 ./run_container.sh
